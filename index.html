@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hubee | Carrinho lateral MVP</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell" id="pageShell">
+      <header class="site-header">
+        <a class="brand" href="#" aria-label="Hubee">
+          <span>hubee</span>
+          <i></i>
+        </a>
+
+        <nav class="nav-links" aria-label="Navegação principal">
+          <a href="#produtos">Home</a>
+          <a href="#produtos">Como funciona</a>
+          <a href="#produtos">Planos</a>
+        </nav>
+
+        <button class="cart-pill" id="openCartButton" type="button" aria-label="Abrir carrinho">
+          <span class="cart-pill__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M7 7h13l-1.7 8.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.6L5.8 4H3" />
+              <circle cx="9" cy="20" r="1" />
+              <circle cx="17" cy="20" r="1" />
+            </svg>
+          </span>
+          <span id="cartButtonCount">0</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="hero-section" aria-labelledby="heroTitle">
+          <div class="hero-copy">
+            <p class="eyebrow">Hubee checkout visual</p>
+            <h1 id="heroTitle">Monte seu carrinho de demandas criativas.</h1>
+            <p>
+              Mockup estático para validar a experiência de cards, quantidades,
+              descrições por item e carrinho lateral antes de qualquer integração real.
+            </p>
+          </div>
+
+          <div class="hero-actions" aria-label="Ações principais">
+            <a class="primary-cta" href="#produtos">
+              <span aria-hidden="true">$</span>
+              Buy now
+            </a>
+          </div>
+        </section>
+
+        <section class="products-section" id="produtos" aria-labelledby="productsTitle">
+          <div class="section-heading">
+            <p class="eyebrow">Serviços sob demanda</p>
+            <h2 id="productsTitle">Escolha os produtos</h2>
+          </div>
+
+          <div class="products-grid" id="productsGrid"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="page-overlay" id="pageOverlay" hidden></div>
+
+    <aside class="cart-drawer" id="cartDrawer" aria-label="Carrinho de compras" aria-hidden="true">
+      <div class="drawer-header">
+        <div>
+          <h2>Seu carrinho</h2>
+          <p id="drawerItemCount">0 itens</p>
+        </div>
+        <button class="icon-button close-button" id="closeCartButton" type="button" aria-label="Fechar carrinho">
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="drawer-content" id="cartContent"></div>
+    </aside>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
