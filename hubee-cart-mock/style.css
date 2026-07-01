@@ -1,20 +1,40 @@
 :root {
   color-scheme: light;
-  --bg: #fbfafd;
+  --hubee-purple-50: #FAF3FF;
+  --hubee-purple-100: #F3E2FF;
+  --hubee-purple-200: #E9CBFF;
+  --hubee-purple-300: #D8A2FF;
+  --hubee-purple-400: #BF67FF;
+  --hubee-purple-500: #A82DFF;
+  --hubee-purple-600: #9406FF;
+  --hubee-purple-700: #8000F8;
+  --hubee-purple-800: #7500D7;
+  --hubee-purple-900: #5A02A1;
+  --hubee-purple-950: #3E007B;
+  --hubee-primary: var(--hubee-purple-800);
+  --hubee-primary-hover: var(--hubee-purple-900);
+  --hubee-primary-soft: var(--hubee-purple-50);
+  --hubee-primary-soft-2: var(--hubee-purple-100);
+  --hubee-primary-border: var(--hubee-purple-200);
+  --hubee-primary-accent: var(--hubee-purple-600);
+  --hubee-primary-accent-2: var(--hubee-purple-700);
+  --hubee-title-font: "Rethink Sans", sans-serif;
+  --hubee-body-font: "Roboto", sans-serif;
+  --bg: #faf3ff;
   --surface: #ffffff;
-  --surface-soft: #f4f1fe;
-  --text: #1e1b2e;
-  --muted: #8a86a0;
-  --muted-strong: #5a5670;
-  --line: #efedf5;
-  --purple: #5b21e6;
-  --purple-dark: #4c1bc4;
+  --surface-soft: var(--hubee-primary-soft);
+  --text: #17131f;
+  --muted: #81798d;
+  --muted-strong: #5f586b;
+  --line: var(--hubee-primary-border);
+  --purple: var(--hubee-primary);
+  --purple-dark: var(--hubee-primary-hover);
   --danger: #e23;
   --shadow: -12px 0 40px rgba(0, 0, 0, 0.25);
-  --button-shadow: 0 8px 20px rgba(91, 33, 230, 0.28);
+  --button-shadow: 0 10px 24px rgba(117, 0, 215, 0.26);
   --radius: 12px;
   --radius-sm: 8px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font: var(--hubee-body-font);
 }
 
 * {
@@ -28,7 +48,7 @@ html {
 body {
   min-width: 320px;
   margin: 0;
-  background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, #ffffff 0%, var(--hubee-primary-soft) 100%);
   color: var(--text);
   font-family: var(--font);
 }
@@ -46,6 +66,18 @@ a {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--hubee-title-font);
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(148, 6, 255, 0.34);
+  outline-offset: 3px;
 }
 
 .page-shell {
@@ -77,7 +109,7 @@ a {
   align-items: flex-start;
   justify-self: start;
   color: var(--text);
-  font-family: var(--font);
+  font-family: var(--hubee-title-font);
   font-size: clamp(1.9rem, 4vw, 2.28rem);
   font-weight: 800;
   letter-spacing: 0;
@@ -94,7 +126,7 @@ a {
   margin: 1px 0 0 5px;
   border-radius: 999px;
   background: var(--purple);
-  box-shadow: 0 0 12px rgba(91, 33, 230, 0.45);
+  box-shadow: 0 0 12px rgba(117, 0, 215, 0.42);
 }
 
 .nav-links {
@@ -108,6 +140,13 @@ a {
 
 .nav-links a {
   opacity: 0.9;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  color: var(--hubee-primary);
+  opacity: 1;
 }
 
 .cart-pill {
@@ -124,6 +163,13 @@ a {
   cursor: pointer;
   font-weight: 700;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.cart-pill:hover {
+  border-color: var(--hubee-primary-border);
+  background: var(--hubee-primary-soft);
+  color: var(--hubee-primary-hover);
 }
 
 .cart-pill__icon {
@@ -131,6 +177,19 @@ a {
   width: 20px;
   height: 20px;
   place-items: center;
+}
+
+#cartButtonCount {
+  display: inline-grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--hubee-primary-soft-2);
+  color: var(--hubee-primary);
+  font-family: var(--hubee-body-font);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 svg {
@@ -160,8 +219,15 @@ svg {
 }
 
 .eyebrow {
+  display: inline-flex;
+  align-items: center;
   margin: 0 0 14px;
+  padding: 6px 10px;
+  border: 1px solid var(--hubee-primary-border);
+  border-radius: 999px;
+  background: var(--hubee-primary-soft-2);
   color: var(--purple);
+  font-family: var(--hubee-body-font);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -172,6 +238,7 @@ svg {
   max-width: 760px;
   margin: 0;
   color: var(--text);
+  font-family: var(--hubee-title-font);
   font-size: clamp(2.35rem, 5.6vw, 4.8rem);
   font-weight: 700;
   letter-spacing: 0;
@@ -182,6 +249,7 @@ svg {
   max-width: 590px;
   margin: 22px 0 0;
   color: var(--muted);
+  font-family: var(--hubee-body-font);
   font-size: 1rem;
   line-height: 1.65;
 }
@@ -200,20 +268,21 @@ svg {
   gap: 8px;
   border: 0;
   border-radius: var(--radius);
-  background: var(--purple);
+  background: linear-gradient(135deg, var(--hubee-primary-accent) 0%, var(--hubee-primary) 100%);
   color: #ffffff;
   cursor: pointer;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
   box-shadow: var(--button-shadow);
-  transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .primary-cta:hover,
 .add-button:hover,
 .checkout-button:hover {
-  background: var(--purple-dark);
+  background: linear-gradient(135deg, var(--hubee-primary-accent-2) 0%, var(--hubee-primary-hover) 100%);
+  box-shadow: 0 12px 26px rgba(90, 2, 161, 0.28);
 }
 
 .primary-cta {
@@ -243,6 +312,7 @@ svg {
 
 .section-heading h2 {
   margin: 0;
+  font-family: var(--hubee-title-font);
   font-size: clamp(1.9rem, 4vw, 3.1rem);
   letter-spacing: 0;
   line-height: 1;
@@ -259,7 +329,7 @@ svg {
   overflow: hidden;
   min-height: 400px;
   padding: 16px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--hubee-primary-border);
   border-radius: var(--radius);
   background: #ffffff;
   box-shadow: none;
@@ -267,7 +337,7 @@ svg {
 }
 
 .product-card:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 28px rgba(117, 0, 215, 0.09);
   transform: translateY(-1px);
 }
 
@@ -293,14 +363,14 @@ svg {
   width: 56%;
   height: 54%;
   background: rgba(255, 255, 255, 0.82);
-  box-shadow: 18px 18px 0 rgba(91, 33, 230, 0.1), -24px -18px 0 rgba(255, 255, 255, 0.54);
+  box-shadow: 18px 18px 0 rgba(117, 0, 215, 0.1), -24px -18px 0 rgba(255, 255, 255, 0.54);
 }
 
 .product-thumb::after {
   width: 36%;
   height: 34%;
-  border: 2px solid rgba(91, 33, 230, 0.16);
-  background: rgba(91, 33, 230, 0.06);
+  border: 2px solid rgba(117, 0, 215, 0.16);
+  background: rgba(148, 6, 255, 0.06);
 }
 
 .product-thumb span {
@@ -319,15 +389,15 @@ svg {
 }
 
 .product-card:nth-child(2) .product-thumb {
-  background: #f7f3ff;
+  background: var(--hubee-primary-soft-2);
 }
 
 .product-card:nth-child(3) .product-thumb {
-  background: #f2effc;
+  background: var(--hubee-primary-border);
 }
 
 .product-card:nth-child(4) .product-thumb {
-  background: #f8f6ff;
+  background: var(--hubee-primary-soft);
 }
 
 .product-body {
@@ -338,6 +408,7 @@ svg {
 
 .product-title {
   margin: 0;
+  font-family: var(--hubee-title-font);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -347,7 +418,7 @@ svg {
 .product-description {
   min-height: 48px;
   margin: 0;
-  color: #666666;
+  color: var(--muted-strong);
   font-size: 0.88rem;
   line-height: 1.55;
 }
@@ -361,6 +432,7 @@ svg {
 
 .product-price {
   color: var(--purple);
+  font-family: var(--hubee-title-font);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -424,6 +496,7 @@ svg {
 .drawer-header h2 {
   margin: 0;
   color: var(--text);
+  font-family: var(--hubee-title-font);
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -446,6 +519,10 @@ svg {
   background: transparent;
   color: var(--purple);
   cursor: pointer;
+}
+
+.icon-button:hover {
+  color: var(--hubee-primary-hover);
 }
 
 .close-button svg {
@@ -518,6 +595,7 @@ svg {
 .cart-item-title {
   margin: 0;
   color: var(--text);
+  font-family: var(--hubee-title-font);
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.25;
@@ -537,13 +615,13 @@ svg {
 }
 
 .remove-button {
-  color: var(--muted);
+  color: var(--muted-strong);
   padding: 2px;
 }
 
 .remove-button:hover,
 .remove-button:focus-visible {
-  color: var(--danger);
+  color: var(--hubee-primary-hover);
 }
 
 .scope-helper {
@@ -577,6 +655,7 @@ svg {
 
 .scope-label {
   color: var(--text);
+  font-family: var(--hubee-title-font);
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -600,7 +679,7 @@ svg {
   height: 24px;
   border: 0;
   background: transparent;
-  color: #6b6880;
+  color: var(--muted-strong);
   cursor: pointer;
   font-size: 18px;
   font-weight: 600;
@@ -634,6 +713,7 @@ svg {
 
 .scope-summary strong {
   color: var(--text);
+  font-family: var(--hubee-title-font);
   font-size: 0.9rem;
 }
 
@@ -652,7 +732,8 @@ svg {
 
 .line-total {
   justify-self: end;
-  color: var(--text);
+  color: var(--hubee-primary);
+  font-family: var(--hubee-title-font);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -666,20 +747,21 @@ svg {
 .cart-summary {
   padding: 18px 20px;
   border-radius: 14px;
-  background: var(--surface-soft);
+  background: var(--hubee-primary-soft);
+  border: 1px solid var(--hubee-primary-border);
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  color: #5a5670;
+  color: var(--muted-strong);
 }
 
 .summary-row + .summary-row {
   margin-top: 14px;
   padding-top: 16px;
-  border-top: 1px solid #e4dffa;
+  border-top: 1px solid var(--hubee-primary-border);
 }
 
 .summary-row strong {
@@ -688,6 +770,7 @@ svg {
 
 .summary-row.total {
   align-items: baseline;
+  font-family: var(--hubee-title-font);
   font-weight: 800;
 }
 
@@ -715,12 +798,20 @@ svg {
 
 .secondary-button {
   min-height: 48px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--hubee-primary-border);
   border-radius: var(--radius);
   background: #ffffff;
   color: var(--purple);
   cursor: pointer;
   font-weight: 700;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+  border-color: var(--hubee-primary);
+  background: var(--hubee-primary-soft);
+  color: var(--hubee-primary-hover);
 }
 
 .stripe-note {
@@ -732,6 +823,7 @@ svg {
 
 .stripe-note strong {
   color: var(--purple);
+  font-family: var(--hubee-title-font);
   font-weight: 800;
   letter-spacing: -0.5px;
 }
@@ -762,6 +854,7 @@ svg {
 
 .empty-state h3 {
   margin: 0;
+  font-family: var(--hubee-title-font);
   font-size: 1.1rem;
 }
 
