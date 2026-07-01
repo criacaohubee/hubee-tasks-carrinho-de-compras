@@ -10,16 +10,12 @@ const products = [
     unitPlural: "slides",
     description: "Apresentação comercial, institucional ou de vendas.",
     cardScope: "A partir de 10 slides",
-    deliverySingular: "apresentação",
-    deliveryPlural: "apresentações",
-    deliveryControlLabel: "Quantidade de apresentações",
-    initialDeliveries: 1,
-    minDeliveries: 1,
-    deliveryStep: 1,
+    summaryUnitSingular: "slide",
+    summaryUnitPlural: "slides",
     scope: {
       singular: "slide",
       plural: "slides",
-      controlLabel: "Slides por apresentação",
+      controlLabel: "Slides da apresentação",
       helperText: "Pacote base: 10 slides · Incrementos de 5 slides",
       initialQuantity: 10,
       minQuantity: 10,
@@ -35,12 +31,7 @@ const products = [
     unitPlural: "projetos",
     description: "Projeto de identidade visual para marca ou campanha.",
     cardScope: "Por projeto",
-    deliverySingular: "projeto",
-    deliveryPlural: "projetos",
-    deliveryControlLabel: "Quantidade de projetos",
-    initialDeliveries: 1,
-    minDeliveries: 1,
-    deliveryStep: 1,
+    fixedSummary: "1 projeto",
   },
   {
     id: "landing-page",
@@ -51,16 +42,12 @@ const products = [
     unitPlural: "seções",
     description: "Página de conversão estruturada por seções.",
     cardScope: "Por seção",
-    deliverySingular: "landing page",
-    deliveryPlural: "landing pages",
-    deliveryControlLabel: "Quantidade de landing pages",
-    initialDeliveries: 1,
-    minDeliveries: 1,
-    deliveryStep: 1,
+    summaryUnitSingular: "seção",
+    summaryUnitPlural: "seções",
     scope: {
       singular: "seção",
       plural: "seções",
-      controlLabel: "Seções por landing page",
+      controlLabel: "Seções da landing page",
       initialQuantity: 5,
       minQuantity: 5,
       step: 1,
@@ -75,12 +62,7 @@ const products = [
     unitPlural: "motions",
     description: "Animações curtas para campanhas digitais.",
     cardScope: "Por motion",
-    deliverySingular: "motion",
-    deliveryPlural: "motions",
-    deliveryControlLabel: "Quantidade de motions",
-    initialDeliveries: 1,
-    minDeliveries: 1,
-    deliveryStep: 1,
+    fixedSummary: "1 motion",
   },
 ];
 
@@ -115,7 +97,7 @@ function getUnitLabel(quantity, singular, plural) {
 }
 
 function getTotalDeliveries() {
-  return cart.reduce((total, item) => total + item.deliveries, 0);
+  return cart.length;
 }
 
 function getSubtotal() {
@@ -135,26 +117,22 @@ function loadCart() {
 
     return savedCart
       .filter((item) => productsById[item.id])
-      .map((item) => normalizeCartItem(productsById[item.id], item));
+      .flatMap((item) => normalizeCartItem(productsById[item.id], item));
   } catch {
     return [];
   }
 }
 
 function normalizeCartItem(product, item) {
-  const legacyQuantity = item.quantity;
+  const legacyDeliveries = Number(item.deliveries) || 1;
+  const itemCount = item.itemId ? 1 : Math.max(1, Math.floor(legacyDeliveries));
+  const legacyScope = item.scope ?? item.quantity;
 
-  return {
+  return Array.from({ length: itemCount }, (_, index) => ({
+    itemId: item.itemId || createCartItemId(product.id, index),
     id: product.id,
-    deliveries: normalizeStepValue(
-      item.deliveries ?? (product.scope ? product.initialDeliveries : legacyQuantity),
-      product.minDeliveries,
-      product.deliveryStep,
-    ),
-    scope: product.scope
-      ? normalizeStepValue(item.scope ?? legacyQuantity, product.scope.minQuantity, product.scope.step)
-      : undefined,
-  };
+    scope: product.scope ? normalizeStepValue(legacyScope, product.scope.minQuantity, product.scope.step) : undefined,
+  }));
 }
 
 function normalizeStepValue(value, minimum, step) {
@@ -170,7 +148,7 @@ function normalizeStepValue(value, minimum, step) {
 }
 
 function getLineTotal(product, item) {
-  return product.price * item.deliveries * getScopeQuantity(product, item);
+  return product.price * getScopeQuantity(product, item);
 }
 
 function getScopeQuantity(product, item) {
@@ -236,7 +214,7 @@ function renderCart() {
 
   cartContent.innerHTML = `
     <ul class="cart-list">
-      ${cart.map(renderCartItem).join("")}
+      ${cart.map((item) => renderCartItem(item, getProductInstanceNumber(item))).join("")}
     </ul>
     <div class="cart-divider"></div>
     <div class="cart-summary" aria-label="Resumo do carrinho">
@@ -263,24 +241,25 @@ function renderCart() {
   `;
 }
 
-function renderCartItem(item) {
+function renderCartItem(item, instanceNumber) {
   const product = productsById[item.id];
   const lineTotal = getLineTotal(product, item);
+  const itemTitle = `${product.name} #${instanceNumber}`;
 
   return `
-    <li class="cart-item" data-cart-item="${item.id}">
+    <li class="cart-item" data-cart-item="${item.itemId}">
       <div class="cart-thumb" aria-hidden="true">
         <span>${product.initials}</span>
       </div>
       <div class="cart-item-main">
         <div class="cart-item-top">
           <div>
-            <h3 class="cart-item-title">${product.name}</h3>
+            <h3 class="cart-item-title">${itemTitle}</h3>
             <p class="cart-item-description">${product.description}</p>
           </div>
         </div>
       </div>
-      <button class="icon-button remove-button" type="button" data-remove-product="${item.id}" aria-label="Remover ${product.name}">
+      <button class="icon-button remove-button" type="button" data-remove-item="${item.itemId}" aria-label="Remover ${itemTitle}">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M3 6h18" />
           <path d="M8 6V4h8v2" />
@@ -291,7 +270,6 @@ function renderCartItem(item) {
       </button>
       <div class="cart-item-controls">
         <div class="cart-controls-stack">
-          ${renderDeliveryControl(product, item)}
           ${renderScopeControl(product, item)}
           <p class="scope-summary">
             <span>Resumo:</span>
@@ -307,19 +285,6 @@ function renderCartItem(item) {
   `;
 }
 
-function renderDeliveryControl(product, item) {
-  return `
-    <div class="scope-control">
-      <span class="scope-label">${product.deliveryControlLabel}</span>
-      <div class="quantity-stepper" aria-label="${product.deliveryControlLabel} de ${product.name}">
-        <button type="button" data-decrease-deliveries="${item.id}" ${item.deliveries === product.minDeliveries ? "disabled" : ""}>-</button>
-        <span>${item.deliveries}</span>
-        <button type="button" data-increase-deliveries="${item.id}">+</button>
-      </div>
-    </div>
-  `;
-}
-
 function renderScopeControl(product, item) {
   if (!product.scope) {
     return "";
@@ -329,9 +294,9 @@ function renderScopeControl(product, item) {
     <div class="scope-control">
       <span class="scope-label">${product.scope.controlLabel}</span>
       <div class="quantity-stepper" aria-label="${product.scope.controlLabel} de ${product.name}">
-        <button type="button" data-decrease-scope="${item.id}" ${item.scope === product.scope.minQuantity ? "disabled" : ""}>-</button>
+        <button type="button" data-decrease-scope="${item.itemId}" ${item.scope === product.scope.minQuantity ? "disabled" : ""}>-</button>
         <span>${item.scope}</span>
-        <button type="button" data-increase-scope="${item.id}">+</button>
+        <button type="button" data-increase-scope="${item.itemId}">+</button>
       </div>
       ${product.scope.helperText ? `<span class="scope-helper">${product.scope.helperText}</span>` : ""}
     </div>
@@ -339,67 +304,46 @@ function renderScopeControl(product, item) {
 }
 
 function renderItemSummary(product, item) {
-  const deliveries = getUnitLabel(item.deliveries, product.deliverySingular, product.deliveryPlural);
-
   if (!product.scope) {
-    return deliveries;
+    return product.fixedSummary;
   }
 
-  return `${deliveries} × ${getUnitLabel(item.scope, product.scope.singular, product.scope.plural)}`;
+  return getUnitLabel(item.scope, product.summaryUnitSingular, product.summaryUnitPlural);
 }
 
 function addProduct(productId) {
   const product = productsById[productId];
-  const existingItem = cart.find((item) => item.id === productId);
 
   if (!product) {
     return;
   }
 
-  if (existingItem) {
-    existingItem.deliveries += product.deliveryStep;
-  } else {
-    cart.push({
-      id: productId,
-      deliveries: product.initialDeliveries,
-      scope: product.scope ? product.scope.initialQuantity : undefined,
-    });
-  }
+  cart.push(createCartItem(product));
 
   saveCart();
   renderCart();
   openCart();
 }
 
-function increaseDeliveries(productId) {
-  const item = cart.find((cartItem) => cartItem.id === productId);
-  const product = productsById[productId];
-
-  if (!item || !product) {
-    return;
-  }
-
-  item.deliveries += product.deliveryStep;
-  saveCart();
-  renderCart();
+function createCartItem(product) {
+  return {
+    itemId: createCartItemId(product.id),
+    id: product.id,
+    scope: product.scope ? product.scope.initialQuantity : undefined,
+  };
 }
 
-function decreaseDeliveries(productId) {
-  const item = cart.find((cartItem) => cartItem.id === productId);
-  const product = productsById[productId];
-
-  if (!item || !product || item.deliveries === product.minDeliveries) {
-    return;
-  }
-
-  item.deliveries = Math.max(product.minDeliveries, item.deliveries - product.deliveryStep);
-  saveCart();
-  renderCart();
+function createCartItemId(productId, index = 0) {
+  return `${productId}-${Date.now().toString(36)}-${index}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function increaseScope(productId) {
-  const item = cart.find((cartItem) => cartItem.id === productId);
-  const product = productsById[productId];
+function getProductInstanceNumber(item) {
+  return cart.filter((cartItem) => cartItem.id === item.id).findIndex((cartItem) => cartItem.itemId === item.itemId) + 1;
+}
+
+function increaseScope(itemId) {
+  const item = cart.find((cartItem) => cartItem.itemId === itemId);
+  const product = item ? productsById[item.id] : null;
 
   if (!item || !product?.scope) {
     return;
@@ -410,9 +354,9 @@ function increaseScope(productId) {
   renderCart();
 }
 
-function decreaseScope(productId) {
-  const item = cart.find((cartItem) => cartItem.id === productId);
-  const product = productsById[productId];
+function decreaseScope(itemId) {
+  const item = cart.find((cartItem) => cartItem.itemId === itemId);
+  const product = item ? productsById[item.id] : null;
 
   if (!item || !product?.scope || item.scope === product.scope.minQuantity) {
     return;
@@ -423,8 +367,8 @@ function decreaseScope(productId) {
   renderCart();
 }
 
-function removeProduct(productId) {
-  cart = cart.filter((item) => item.id !== productId);
+function removeItem(itemId) {
+  cart = cart.filter((item) => item.itemId !== itemId);
   saveCart();
   renderCart();
 }
@@ -476,9 +420,7 @@ productsGrid.addEventListener("click", (event) => {
 cartContent.addEventListener("click", (event) => {
   const closeButton = event.target.closest("[data-close-cart]");
   const checkoutButton = event.target.closest("[data-checkout]");
-  const removeButton = event.target.closest("[data-remove-product]");
-  const increaseDeliveriesButton = event.target.closest("[data-increase-deliveries]");
-  const decreaseDeliveriesButton = event.target.closest("[data-decrease-deliveries]");
+  const removeButton = event.target.closest("[data-remove-item]");
   const increaseScopeButton = event.target.closest("[data-increase-scope]");
   const decreaseScopeButton = event.target.closest("[data-decrease-scope]");
 
@@ -493,17 +435,7 @@ cartContent.addEventListener("click", (event) => {
   }
 
   if (removeButton) {
-    removeProduct(removeButton.dataset.removeProduct);
-    return;
-  }
-
-  if (increaseDeliveriesButton) {
-    increaseDeliveries(increaseDeliveriesButton.dataset.increaseDeliveries);
-    return;
-  }
-
-  if (decreaseDeliveriesButton) {
-    decreaseDeliveries(decreaseDeliveriesButton.dataset.decreaseDeliveries);
+    removeItem(removeButton.dataset.removeItem);
     return;
   }
 

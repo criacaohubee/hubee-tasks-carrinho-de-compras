@@ -548,12 +548,9 @@ svg {
 
 .scope-helper {
   color: var(--muted);
+  display: block;
   font-size: 0.85rem;
   line-height: 1.35;
-}
-
-.scope-helper {
-  display: block;
 }
 
 .cart-item-controls {
