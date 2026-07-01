@@ -8,8 +8,15 @@ const products = [
     price: 7000,
     unitSingular: "slide",
     unitPlural: "slides",
-    description: "Apresentações comerciais, institucionais ou de vendas.",
-    placeholder: "Ex: apresentação institucional para venda B2B",
+    description: "Apresentação comercial, institucional ou de vendas.",
+    cardScope: "A partir de 10 slides",
+    deliveryLabel: "1 apresentação",
+    baseLabel: "Pacote base: 10 slides",
+    controlLabel: "Quantidade de slides",
+    helperText: "Incrementos de 5 slides",
+    initialQuantity: 10,
+    minQuantity: 10,
+    step: 5,
   },
   {
     id: "identidade-visual",
@@ -18,8 +25,12 @@ const products = [
     price: 90000,
     unitSingular: "projeto",
     unitPlural: "projetos",
-    description: "Criação de identidade visual para marcas e campanhas.",
-    placeholder: "Ex: identidade para nova marca de cosméticos",
+    description: "Projeto de identidade visual para marca ou campanha.",
+    cardScope: "Por projeto",
+    controlLabel: "Quantidade de projetos",
+    initialQuantity: 1,
+    minQuantity: 1,
+    step: 1,
   },
   {
     id: "landing-page",
@@ -28,18 +39,13 @@ const products = [
     price: 25000,
     unitSingular: "seção",
     unitPlural: "seções",
-    description: "Desenvolvimento visual de landing pages por seção.",
-    placeholder: "Ex: LP para captação de leads",
-  },
-  {
-    id: "social-media",
-    name: "Social Media",
-    initials: "SM",
-    price: 15000,
-    unitSingular: "peça",
-    unitPlural: "peças",
-    description: "Peças estáticas para redes sociais.",
-    placeholder: "Ex: posts para campanha de lançamento",
+    description: "Página de conversão estruturada por seções.",
+    cardScope: "Por seção",
+    deliveryLabel: "1 landing page",
+    controlLabel: "Quantidade de seções",
+    initialQuantity: 5,
+    minQuantity: 5,
+    step: 1,
   },
   {
     id: "motion-kit",
@@ -49,7 +55,11 @@ const products = [
     unitSingular: "motion",
     unitPlural: "motions",
     description: "Animações curtas para campanhas digitais.",
-    placeholder: "Ex: animações curtas para redes sociais",
+    cardScope: "Por motion",
+    controlLabel: "Quantidade de motions",
+    initialQuantity: 1,
+    minQuantity: 1,
+    step: 1,
   },
 ];
 
@@ -83,8 +93,8 @@ function getUnitLabel(product, quantity) {
   return `${quantity} ${quantity === 1 ? product.unitSingular : product.unitPlural}`;
 }
 
-function getTotalItems() {
-  return cart.reduce((total, item) => total + item.quantity, 0);
+function getTotalProducts() {
+  return cart.length;
 }
 
 function getSubtotal() {
@@ -106,12 +116,24 @@ function loadCart() {
       .filter((item) => productsById[item.id])
       .map((item) => ({
         id: item.id,
-        quantity: Math.max(1, Number(item.quantity) || 1),
-        note: typeof item.note === "string" ? item.note : "",
+        quantity: normalizeQuantity(productsById[item.id], item.quantity),
       }));
   } catch {
     return [];
   }
+}
+
+function normalizeQuantity(product, value) {
+  const parsedQuantity = Number(value);
+  const quantity = Number.isFinite(parsedQuantity) ? parsedQuantity : product.initialQuantity;
+  const minimum = product.minQuantity;
+
+  if (quantity <= minimum) {
+    return minimum;
+  }
+
+  const offset = quantity - minimum;
+  return minimum + Math.ceil(offset / product.step) * product.step;
 }
 
 function saveCart() {
@@ -131,7 +153,7 @@ function renderProducts() {
             <p class="product-description">${product.description}</p>
             <div class="product-meta">
               <span class="product-price">${formatCurrency(product.price)}</span>
-              <span class="product-unit">por ${product.unitSingular}</span>
+              <span class="product-unit">${product.cardScope}</span>
             </div>
             <button class="add-button" type="button" data-add-product="${product.id}">
               Adicionar ao carrinho
@@ -144,12 +166,12 @@ function renderProducts() {
 }
 
 function renderCart() {
-  const totalItems = getTotalItems();
+  const totalProducts = getTotalProducts();
   const subtotal = getSubtotal();
-  const itemText = totalItems === 1 ? "1 item" : `${totalItems} itens`;
+  const itemText = totalProducts === 1 ? "1 produto no carrinho" : `${totalProducts} produtos no carrinho`;
 
   drawerItemCount.textContent = itemText;
-  cartButtonCount.textContent = String(totalItems);
+  cartButtonCount.textContent = String(totalProducts);
 
   if (cart.length === 0) {
     cartContent.innerHTML = `
@@ -213,17 +235,10 @@ function renderCartItem(item) {
         <div class="cart-item-top">
           <div>
             <h3 class="cart-item-title">${product.name}</h3>
-            <p class="cart-item-unit">${getUnitLabel(product, item.quantity)}</p>
-            <p class="cart-item-price">${formatCurrency(product.price)}</p>
+            <p class="cart-item-description">${product.description}</p>
           </div>
         </div>
-        <textarea
-          class="item-description"
-          data-note-product="${item.id}"
-          maxlength="160"
-          placeholder="${product.placeholder}"
-          aria-label="Descrição curta para ${product.name}"
-        >${escapeTextarea(item.note)}</textarea>
+        ${renderScopeBadge(product, item.quantity)}
       </div>
       <button class="icon-button remove-button" type="button" data-remove-product="${item.id}" aria-label="Remover ${product.name}">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -235,31 +250,49 @@ function renderCartItem(item) {
         </svg>
       </button>
       <div class="cart-item-controls">
-        <div class="quantity-stepper" aria-label="Quantidade de ${product.name}">
-          <button type="button" data-decrease-product="${item.id}" ${item.quantity === 1 ? "disabled" : ""}>-</button>
-          <span>${item.quantity}</span>
-          <button type="button" data-increase-product="${item.id}">+</button>
+        <div class="scope-control">
+          <span class="scope-label">${product.controlLabel}</span>
+          <div class="quantity-stepper" aria-label="${product.controlLabel} de ${product.name}">
+            <button type="button" data-decrease-product="${item.id}" ${item.quantity === product.minQuantity ? "disabled" : ""}>-</button>
+            <span>${item.quantity}</span>
+            <button type="button" data-increase-product="${item.id}">+</button>
+          </div>
+          ${product.helperText ? `<span class="scope-helper">${product.helperText}</span>` : ""}
         </div>
-        <strong class="line-total">${formatCurrency(lineTotal)}</strong>
+        <div class="line-total-wrap">
+          <span>Total</span>
+          <strong class="line-total">${formatCurrency(lineTotal)}</strong>
+        </div>
       </div>
     </li>
   `;
 }
 
-function escapeTextarea(value) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+function renderScopeBadge(product, quantity) {
+  if (product.deliveryLabel) {
+    return `
+      <div class="cart-scope">
+        <span class="scope-badge">${product.deliveryLabel}</span>
+        ${product.baseLabel ? `<span class="scope-base">${product.baseLabel}</span>` : ""}
+      </div>
+    `;
+  }
+
+  return `<p class="cart-item-unit">${getUnitLabel(product, quantity)}</p>`;
 }
 
 function addProduct(productId) {
+  const product = productsById[productId];
   const existingItem = cart.find((item) => item.id === productId);
 
+  if (!product) {
+    return;
+  }
+
   if (existingItem) {
-    existingItem.quantity += 1;
+    existingItem.quantity += product.step;
   } else {
-    cart.push({ id: productId, quantity: 1, note: "" });
+    cart.push({ id: productId, quantity: product.initialQuantity });
   }
 
   saveCart();
@@ -269,24 +302,26 @@ function addProduct(productId) {
 
 function increaseQuantity(productId) {
   const item = cart.find((cartItem) => cartItem.id === productId);
+  const product = productsById[productId];
 
-  if (!item) {
+  if (!item || !product) {
     return;
   }
 
-  item.quantity += 1;
+  item.quantity += product.step;
   saveCart();
   renderCart();
 }
 
 function decreaseQuantity(productId) {
   const item = cart.find((cartItem) => cartItem.id === productId);
+  const product = productsById[productId];
 
-  if (!item || item.quantity === 1) {
+  if (!item || !product || item.quantity === product.minQuantity) {
     return;
   }
 
-  item.quantity -= 1;
+  item.quantity = Math.max(product.minQuantity, item.quantity - product.step);
   saveCart();
   renderCart();
 }
@@ -295,17 +330,6 @@ function removeProduct(productId) {
   cart = cart.filter((item) => item.id !== productId);
   saveCart();
   renderCart();
-}
-
-function updateNote(productId, value) {
-  const item = cart.find((cartItem) => cartItem.id === productId);
-
-  if (!item) {
-    return;
-  }
-
-  item.note = value;
-  saveCart();
 }
 
 function openCart() {
@@ -382,16 +406,6 @@ cartContent.addEventListener("click", (event) => {
   if (decreaseButton) {
     decreaseQuantity(decreaseButton.dataset.decreaseProduct);
   }
-});
-
-cartContent.addEventListener("input", (event) => {
-  const field = event.target.closest("[data-note-product]");
-
-  if (!field) {
-    return;
-  }
-
-  updateNote(field.dataset.noteProduct, field.value);
 });
 
 openCartButton.addEventListener("click", openCart);
