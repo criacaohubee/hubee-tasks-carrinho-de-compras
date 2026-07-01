@@ -549,18 +549,18 @@ svg {
 
 .cart-item {
   display: grid;
-  grid-template-columns: 84px minmax(0, 1fr) auto;
-  gap: 18px;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 14px;
   min-width: 0;
   overflow-x: clip;
-  padding: 22px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--line);
 }
 
 .cart-thumb {
   display: grid;
-  width: 84px;
-  height: 84px;
+  width: 72px;
+  height: 72px;
   place-items: center;
   overflow: hidden;
   border-radius: 14px;
@@ -581,7 +581,7 @@ svg {
 
 .cart-item-main {
   display: grid;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -608,10 +608,10 @@ svg {
 }
 
 .cart-item-description {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--muted-strong);
   font-size: 0.86rem;
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 .remove-button {
@@ -624,32 +624,25 @@ svg {
   color: var(--hubee-primary-hover);
 }
 
-.scope-helper {
-  color: var(--muted);
-  display: block;
-  font-size: 0.85rem;
-  line-height: 1.35;
-}
-
 .cart-item-controls {
   grid-column: 2 / 4;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 16px;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .cart-controls-stack {
   display: grid;
-  gap: 14px;
+  gap: 8px;
   min-width: 0;
 }
 
 .scope-control {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -702,24 +695,9 @@ svg {
   font-weight: 600;
 }
 
-.scope-summary {
-  display: grid;
-  gap: 4px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-.scope-summary strong {
-  color: var(--text);
-  font-family: var(--hubee-title-font);
-  font-size: 0.9rem;
-}
-
 .line-total-wrap {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   justify-items: end;
   min-width: max-content;
 }
