@@ -16,7 +16,6 @@ const products = [
       singular: "slide",
       plural: "slides",
       controlLabel: "Slides da apresentação",
-      helperText: "Pacote base: 10 slides · Incrementos de 5 slides",
       initialQuantity: 10,
       minQuantity: 10,
       step: 5,
@@ -31,7 +30,6 @@ const products = [
     unitPlural: "projetos",
     description: "Projeto de identidade visual para marca ou campanha.",
     cardScope: "Por projeto",
-    fixedSummary: "1 projeto",
   },
   {
     id: "landing-page",
@@ -62,7 +60,6 @@ const products = [
     unitPlural: "motions",
     description: "Animações curtas para campanhas digitais.",
     cardScope: "Por motion",
-    fixedSummary: "1 motion",
   },
 ];
 
@@ -90,10 +87,6 @@ function formatCurrency(valueInCents) {
     style: "currency",
     currency: "BRL",
   }).format(valueInCents / 100);
-}
-
-function getUnitLabel(quantity, singular, plural) {
-  return `${quantity} ${quantity === 1 ? singular : plural}`;
 }
 
 function getTotalDeliveries() {
@@ -271,10 +264,6 @@ function renderCartItem(item, instanceNumber) {
       <div class="cart-item-controls">
         <div class="cart-controls-stack">
           ${renderScopeControl(product, item)}
-          <p class="scope-summary">
-            <span>Resumo:</span>
-            <strong>${renderItemSummary(product, item)}</strong>
-          </p>
         </div>
         <div class="line-total-wrap">
           <span>Total</span>
@@ -298,17 +287,8 @@ function renderScopeControl(product, item) {
         <span>${item.scope}</span>
         <button type="button" data-increase-scope="${item.itemId}">+</button>
       </div>
-      ${product.scope.helperText ? `<span class="scope-helper">${product.scope.helperText}</span>` : ""}
     </div>
   `;
-}
-
-function renderItemSummary(product, item) {
-  if (!product.scope) {
-    return product.fixedSummary;
-  }
-
-  return getUnitLabel(item.scope, product.summaryUnitSingular, product.summaryUnitPlural);
 }
 
 function addProduct(productId) {
