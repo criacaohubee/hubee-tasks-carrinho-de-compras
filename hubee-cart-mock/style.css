@@ -546,27 +546,6 @@ svg {
   color: var(--danger);
 }
 
-.cart-scope {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.scope-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 26px;
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--purple);
-  font-size: 0.78rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.scope-base,
 .scope-helper {
   color: var(--muted);
   font-size: 0.85rem;
@@ -581,10 +560,16 @@ svg {
   grid-column: 2 / 4;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
+  align-items: start;
   gap: 16px;
   min-width: 0;
   margin-top: 2px;
+}
+
+.cart-controls-stack {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
 }
 
 .scope-control {
@@ -639,6 +624,20 @@ svg {
   text-align: center;
   color: var(--text);
   font-weight: 600;
+}
+
+.scope-summary {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.scope-summary strong {
+  color: var(--text);
+  font-size: 0.9rem;
 }
 
 .line-total-wrap {
