@@ -10,13 +10,21 @@ const products = [
     unitPlural: "slides",
     description: "Apresentação comercial, institucional ou de vendas.",
     cardScope: "A partir de 10 slides",
-    deliveryLabel: "1 apresentação",
-    baseLabel: "Pacote base: 10 slides",
-    controlLabel: "Quantidade de slides",
-    helperText: "Incrementos de 5 slides",
-    initialQuantity: 10,
-    minQuantity: 10,
-    step: 5,
+    deliverySingular: "apresentação",
+    deliveryPlural: "apresentações",
+    deliveryControlLabel: "Quantidade de apresentações",
+    initialDeliveries: 1,
+    minDeliveries: 1,
+    deliveryStep: 1,
+    scope: {
+      singular: "slide",
+      plural: "slides",
+      controlLabel: "Slides por apresentação",
+      helperText: "Pacote base: 10 slides · Incrementos de 5 slides",
+      initialQuantity: 10,
+      minQuantity: 10,
+      step: 5,
+    },
   },
   {
     id: "identidade-visual",
@@ -27,10 +35,12 @@ const products = [
     unitPlural: "projetos",
     description: "Projeto de identidade visual para marca ou campanha.",
     cardScope: "Por projeto",
-    controlLabel: "Quantidade de projetos",
-    initialQuantity: 1,
-    minQuantity: 1,
-    step: 1,
+    deliverySingular: "projeto",
+    deliveryPlural: "projetos",
+    deliveryControlLabel: "Quantidade de projetos",
+    initialDeliveries: 1,
+    minDeliveries: 1,
+    deliveryStep: 1,
   },
   {
     id: "landing-page",
@@ -41,11 +51,20 @@ const products = [
     unitPlural: "seções",
     description: "Página de conversão estruturada por seções.",
     cardScope: "Por seção",
-    deliveryLabel: "1 landing page",
-    controlLabel: "Quantidade de seções",
-    initialQuantity: 5,
-    minQuantity: 5,
-    step: 1,
+    deliverySingular: "landing page",
+    deliveryPlural: "landing pages",
+    deliveryControlLabel: "Quantidade de landing pages",
+    initialDeliveries: 1,
+    minDeliveries: 1,
+    deliveryStep: 1,
+    scope: {
+      singular: "seção",
+      plural: "seções",
+      controlLabel: "Seções por landing page",
+      initialQuantity: 5,
+      minQuantity: 5,
+      step: 1,
+    },
   },
   {
     id: "motion-kit",
@@ -56,10 +75,12 @@ const products = [
     unitPlural: "motions",
     description: "Animações curtas para campanhas digitais.",
     cardScope: "Por motion",
-    controlLabel: "Quantidade de motions",
-    initialQuantity: 1,
-    minQuantity: 1,
-    step: 1,
+    deliverySingular: "motion",
+    deliveryPlural: "motions",
+    deliveryControlLabel: "Quantidade de motions",
+    initialDeliveries: 1,
+    minDeliveries: 1,
+    deliveryStep: 1,
   },
 ];
 
@@ -89,18 +110,18 @@ function formatCurrency(valueInCents) {
   }).format(valueInCents / 100);
 }
 
-function getUnitLabel(product, quantity) {
-  return `${quantity} ${quantity === 1 ? product.unitSingular : product.unitPlural}`;
+function getUnitLabel(quantity, singular, plural) {
+  return `${quantity} ${quantity === 1 ? singular : plural}`;
 }
 
-function getTotalProducts() {
-  return cart.length;
+function getTotalDeliveries() {
+  return cart.reduce((total, item) => total + item.deliveries, 0);
 }
 
 function getSubtotal() {
   return cart.reduce((total, item) => {
     const product = productsById[item.id];
-    return product ? total + product.price * item.quantity : total;
+    return product ? total + getLineTotal(product, item) : total;
   }, 0);
 }
 
@@ -114,26 +135,46 @@ function loadCart() {
 
     return savedCart
       .filter((item) => productsById[item.id])
-      .map((item) => ({
-        id: item.id,
-        quantity: normalizeQuantity(productsById[item.id], item.quantity),
-      }));
+      .map((item) => normalizeCartItem(productsById[item.id], item));
   } catch {
     return [];
   }
 }
 
-function normalizeQuantity(product, value) {
+function normalizeCartItem(product, item) {
+  const legacyQuantity = item.quantity;
+
+  return {
+    id: product.id,
+    deliveries: normalizeStepValue(
+      item.deliveries ?? (product.scope ? product.initialDeliveries : legacyQuantity),
+      product.minDeliveries,
+      product.deliveryStep,
+    ),
+    scope: product.scope
+      ? normalizeStepValue(item.scope ?? legacyQuantity, product.scope.minQuantity, product.scope.step)
+      : undefined,
+  };
+}
+
+function normalizeStepValue(value, minimum, step) {
   const parsedQuantity = Number(value);
-  const quantity = Number.isFinite(parsedQuantity) ? parsedQuantity : product.initialQuantity;
-  const minimum = product.minQuantity;
+  const quantity = Number.isFinite(parsedQuantity) ? parsedQuantity : minimum;
 
   if (quantity <= minimum) {
     return minimum;
   }
 
   const offset = quantity - minimum;
-  return minimum + Math.ceil(offset / product.step) * product.step;
+  return minimum + Math.ceil(offset / step) * step;
+}
+
+function getLineTotal(product, item) {
+  return product.price * item.deliveries * getScopeQuantity(product, item);
+}
+
+function getScopeQuantity(product, item) {
+  return product.scope ? item.scope : 1;
 }
 
 function saveCart() {
@@ -166,12 +207,12 @@ function renderProducts() {
 }
 
 function renderCart() {
-  const totalProducts = getTotalProducts();
+  const totalDeliveries = getTotalDeliveries();
   const subtotal = getSubtotal();
-  const itemText = totalProducts === 1 ? "1 produto no carrinho" : `${totalProducts} produtos no carrinho`;
+  const itemText = totalDeliveries === 1 ? "1 entrega no carrinho" : `${totalDeliveries} entregas no carrinho`;
 
   drawerItemCount.textContent = itemText;
-  cartButtonCount.textContent = String(totalProducts);
+  cartButtonCount.textContent = String(totalDeliveries);
 
   if (cart.length === 0) {
     cartContent.innerHTML = `
@@ -224,7 +265,7 @@ function renderCart() {
 
 function renderCartItem(item) {
   const product = productsById[item.id];
-  const lineTotal = product.price * item.quantity;
+  const lineTotal = getLineTotal(product, item);
 
   return `
     <li class="cart-item" data-cart-item="${item.id}">
@@ -238,7 +279,6 @@ function renderCartItem(item) {
             <p class="cart-item-description">${product.description}</p>
           </div>
         </div>
-        ${renderScopeBadge(product, item.quantity)}
       </div>
       <button class="icon-button remove-button" type="button" data-remove-product="${item.id}" aria-label="Remover ${product.name}">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -250,14 +290,13 @@ function renderCartItem(item) {
         </svg>
       </button>
       <div class="cart-item-controls">
-        <div class="scope-control">
-          <span class="scope-label">${product.controlLabel}</span>
-          <div class="quantity-stepper" aria-label="${product.controlLabel} de ${product.name}">
-            <button type="button" data-decrease-product="${item.id}" ${item.quantity === product.minQuantity ? "disabled" : ""}>-</button>
-            <span>${item.quantity}</span>
-            <button type="button" data-increase-product="${item.id}">+</button>
-          </div>
-          ${product.helperText ? `<span class="scope-helper">${product.helperText}</span>` : ""}
+        <div class="cart-controls-stack">
+          ${renderDeliveryControl(product, item)}
+          ${renderScopeControl(product, item)}
+          <p class="scope-summary">
+            <span>Resumo:</span>
+            <strong>${renderItemSummary(product, item)}</strong>
+          </p>
         </div>
         <div class="line-total-wrap">
           <span>Total</span>
@@ -268,17 +307,45 @@ function renderCartItem(item) {
   `;
 }
 
-function renderScopeBadge(product, quantity) {
-  if (product.deliveryLabel) {
-    return `
-      <div class="cart-scope">
-        <span class="scope-badge">${product.deliveryLabel}</span>
-        ${product.baseLabel ? `<span class="scope-base">${product.baseLabel}</span>` : ""}
+function renderDeliveryControl(product, item) {
+  return `
+    <div class="scope-control">
+      <span class="scope-label">${product.deliveryControlLabel}</span>
+      <div class="quantity-stepper" aria-label="${product.deliveryControlLabel} de ${product.name}">
+        <button type="button" data-decrease-deliveries="${item.id}" ${item.deliveries === product.minDeliveries ? "disabled" : ""}>-</button>
+        <span>${item.deliveries}</span>
+        <button type="button" data-increase-deliveries="${item.id}">+</button>
       </div>
-    `;
+    </div>
+  `;
+}
+
+function renderScopeControl(product, item) {
+  if (!product.scope) {
+    return "";
   }
 
-  return `<p class="cart-item-unit">${getUnitLabel(product, quantity)}</p>`;
+  return `
+    <div class="scope-control">
+      <span class="scope-label">${product.scope.controlLabel}</span>
+      <div class="quantity-stepper" aria-label="${product.scope.controlLabel} de ${product.name}">
+        <button type="button" data-decrease-scope="${item.id}" ${item.scope === product.scope.minQuantity ? "disabled" : ""}>-</button>
+        <span>${item.scope}</span>
+        <button type="button" data-increase-scope="${item.id}">+</button>
+      </div>
+      ${product.scope.helperText ? `<span class="scope-helper">${product.scope.helperText}</span>` : ""}
+    </div>
+  `;
+}
+
+function renderItemSummary(product, item) {
+  const deliveries = getUnitLabel(item.deliveries, product.deliverySingular, product.deliveryPlural);
+
+  if (!product.scope) {
+    return deliveries;
+  }
+
+  return `${deliveries} × ${getUnitLabel(item.scope, product.scope.singular, product.scope.plural)}`;
 }
 
 function addProduct(productId) {
@@ -290,9 +357,13 @@ function addProduct(productId) {
   }
 
   if (existingItem) {
-    existingItem.quantity += product.step;
+    existingItem.deliveries += product.deliveryStep;
   } else {
-    cart.push({ id: productId, quantity: product.initialQuantity });
+    cart.push({
+      id: productId,
+      deliveries: product.initialDeliveries,
+      scope: product.scope ? product.scope.initialQuantity : undefined,
+    });
   }
 
   saveCart();
@@ -300,7 +371,7 @@ function addProduct(productId) {
   openCart();
 }
 
-function increaseQuantity(productId) {
+function increaseDeliveries(productId) {
   const item = cart.find((cartItem) => cartItem.id === productId);
   const product = productsById[productId];
 
@@ -308,20 +379,46 @@ function increaseQuantity(productId) {
     return;
   }
 
-  item.quantity += product.step;
+  item.deliveries += product.deliveryStep;
   saveCart();
   renderCart();
 }
 
-function decreaseQuantity(productId) {
+function decreaseDeliveries(productId) {
   const item = cart.find((cartItem) => cartItem.id === productId);
   const product = productsById[productId];
 
-  if (!item || !product || item.quantity === product.minQuantity) {
+  if (!item || !product || item.deliveries === product.minDeliveries) {
     return;
   }
 
-  item.quantity = Math.max(product.minQuantity, item.quantity - product.step);
+  item.deliveries = Math.max(product.minDeliveries, item.deliveries - product.deliveryStep);
+  saveCart();
+  renderCart();
+}
+
+function increaseScope(productId) {
+  const item = cart.find((cartItem) => cartItem.id === productId);
+  const product = productsById[productId];
+
+  if (!item || !product?.scope) {
+    return;
+  }
+
+  item.scope += product.scope.step;
+  saveCart();
+  renderCart();
+}
+
+function decreaseScope(productId) {
+  const item = cart.find((cartItem) => cartItem.id === productId);
+  const product = productsById[productId];
+
+  if (!item || !product?.scope || item.scope === product.scope.minQuantity) {
+    return;
+  }
+
+  item.scope = Math.max(product.scope.minQuantity, item.scope - product.scope.step);
   saveCart();
   renderCart();
 }
@@ -380,8 +477,10 @@ cartContent.addEventListener("click", (event) => {
   const closeButton = event.target.closest("[data-close-cart]");
   const checkoutButton = event.target.closest("[data-checkout]");
   const removeButton = event.target.closest("[data-remove-product]");
-  const increaseButton = event.target.closest("[data-increase-product]");
-  const decreaseButton = event.target.closest("[data-decrease-product]");
+  const increaseDeliveriesButton = event.target.closest("[data-increase-deliveries]");
+  const decreaseDeliveriesButton = event.target.closest("[data-decrease-deliveries]");
+  const increaseScopeButton = event.target.closest("[data-increase-scope]");
+  const decreaseScopeButton = event.target.closest("[data-decrease-scope]");
 
   if (closeButton) {
     closeCart();
@@ -398,13 +497,23 @@ cartContent.addEventListener("click", (event) => {
     return;
   }
 
-  if (increaseButton) {
-    increaseQuantity(increaseButton.dataset.increaseProduct);
+  if (increaseDeliveriesButton) {
+    increaseDeliveries(increaseDeliveriesButton.dataset.increaseDeliveries);
     return;
   }
 
-  if (decreaseButton) {
-    decreaseQuantity(decreaseButton.dataset.decreaseProduct);
+  if (decreaseDeliveriesButton) {
+    decreaseDeliveries(decreaseDeliveriesButton.dataset.decreaseDeliveries);
+    return;
+  }
+
+  if (increaseScopeButton) {
+    increaseScope(increaseScopeButton.dataset.increaseScope);
+    return;
+  }
+
+  if (decreaseScopeButton) {
+    decreaseScope(decreaseScopeButton.dataset.decreaseScope);
   }
 });
 
